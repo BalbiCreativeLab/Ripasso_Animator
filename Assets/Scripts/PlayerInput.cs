@@ -31,7 +31,6 @@ public class PlayerInput : MonoBehaviour
 
     void SetSprint(InputAction.CallbackContext context)
     {
-        context.ReadValue<Vector2>();
         controller.isSprinting = context.ReadValueAsButton();
     }
 

@@ -17,12 +17,19 @@ public class PlayerController : MonoBehaviour
 
     Vector3 correctedDir;
 
+    //public float currentSpeed, targetSpeed, speedVelocity;
+    public Vector3 currentDir, dirVelocity;
+
+    SmoothFloat smoothSpeed;
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         animator = GetComponent<Animator>();
         characterController = GetComponent<CharacterController>();
         groundSensor = GetComponentInChildren<GroundSensor>();
+
+        smoothSpeed = new SmoothFloat(0.2f);
     }
 
     // Update is called once per frame
@@ -44,12 +51,17 @@ public class PlayerController : MonoBehaviour
 
         if (isSprinting)
         {
-            animator.SetFloat("Speed", direction.magnitude * 2);
+            //targetSpeed = direction.magnitude * 2;
+            animator.SetFloat("Speed", smoothSpeed.GetAndUpdateValue(direction.magnitude*2));
         }
         else
         {
-            animator.SetFloat("Speed", direction.magnitude);
+            //targetSpeed = direction.magnitude;
+            animator.SetFloat("Speed", smoothSpeed.GetAndUpdateValue(direction.magnitude));
         }
+
+        //currentSpeed = Mathf.SmoothDamp(currentSpeed, targetSpeed, ref speedVelocity, 0.2f);
+        //animator.SetFloat("Speed", smoothSpeed.MoveTowards(currentSpeed));
     }
 
     void Applygravity()
@@ -59,8 +71,10 @@ public class PlayerController : MonoBehaviour
 
     void RotateCharacter()
     {
+        currentDir = Vector3.Slerp(currentDir, correctedDir, Time.deltaTime * 5f);
+
         if(direction.magnitude > 0)
-            transform.rotation = Quaternion.LookRotation(correctedDir, Vector3.up);
+            transform.rotation = Quaternion.LookRotation(currentDir, Vector3.up);
     }
 
     public void Jump()
