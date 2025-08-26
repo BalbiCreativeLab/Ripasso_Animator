@@ -16,8 +16,10 @@ public class PlayerController : MonoBehaviour
     [SerializeField] Camera cam;
 
     Vector3 correctedDir;
+    Vector3 initialPosition;
+    Vector3 currentVelocity = Vector3.zero;
+    Vector3 targetVelocity;
 
-    //public float currentSpeed, targetSpeed, speedVelocity;
     public Vector3 currentDir, dirVelocity;
 
     SmoothFloat smoothSpeed;
@@ -30,16 +32,28 @@ public class PlayerController : MonoBehaviour
         groundSensor = GetComponentInChildren<GroundSensor>();
 
         smoothSpeed = new SmoothFloat(0.2f);
+        currentVelocity = Vector3.zero;
     }
 
     // Update is called once per frame
     void Update()
     {
+        initialPosition = transform.position;
+
         Movement();
         ApplyJump();
-        Applygravity();
+        ApplyGravity();
         RotateCharacter();
+
+        animator.SetBool("IsGrounded", groundSensor.isGrounded);
+        animator.SetFloat("VerticalSpeed", currentVelocity.y);
     }
+
+    private void LateUpdate()
+    {
+        currentVelocity = (transform.position - initialPosition) / Time.deltaTime ;
+    }
+
     void Movement()
     {
         Vector3 dir = new Vector3(direction.x, 0, direction.y);
@@ -55,10 +69,10 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    void Applygravity()
+    void ApplyGravity()
     {
-        if(!isJumping)
-            characterController.Move(Vector3.down * 10 * Time.deltaTime);
+        //if(!groundSensor.isGrounded)
+        //characterController.Move(Vector3.up * ((currentVelocity.y) * Time.deltaTime));
     }
 
     void RotateCharacter()
@@ -73,16 +87,17 @@ public class PlayerController : MonoBehaviour
     {
         if(groundSensor.isGrounded)
         {
-
             isJumping = true;
-            StartCoroutine(JumpCoroutine());
+            //StartCoroutine(JumpCoroutine());
+            animator.SetTrigger("Jump");
+            currentVelocity.y = 10;
         }
     }
     private void ApplyJump()
     {
         if (isJumping)
         {
-            characterController.Move(Vector3.up * Time.deltaTime * 10);
+            //characterController.Move(Vector3.up * Time.deltaTime * 10);
         }
     }
 
