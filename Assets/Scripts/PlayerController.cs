@@ -36,13 +36,9 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
         Movement();
+        ApplyJump();
         Applygravity();
         RotateCharacter();
-
-        if (isJumping)
-        {
-            characterController.Move(Vector3.up * Time.deltaTime * 20);
-        }
     }
     void Movement()
     {
@@ -51,22 +47,18 @@ public class PlayerController : MonoBehaviour
 
         if (isSprinting)
         {
-            //targetSpeed = direction.magnitude * 2;
             animator.SetFloat("Speed", smoothSpeed.GetAndUpdateValue(direction.magnitude*2));
         }
         else
         {
-            //targetSpeed = direction.magnitude;
             animator.SetFloat("Speed", smoothSpeed.GetAndUpdateValue(direction.magnitude));
         }
-
-        //currentSpeed = Mathf.SmoothDamp(currentSpeed, targetSpeed, ref speedVelocity, 0.2f);
-        //animator.SetFloat("Speed", smoothSpeed.MoveTowards(currentSpeed));
     }
 
     void Applygravity()
     {
-        characterController.Move(Vector3.down * 10 * Time.deltaTime);
+        if(!isJumping)
+            characterController.Move(Vector3.down * 10 * Time.deltaTime);
     }
 
     void RotateCharacter()
@@ -84,6 +76,13 @@ public class PlayerController : MonoBehaviour
 
             isJumping = true;
             StartCoroutine(JumpCoroutine());
+        }
+    }
+    private void ApplyJump()
+    {
+        if (isJumping)
+        {
+            characterController.Move(Vector3.up * Time.deltaTime * 10);
         }
     }
 
