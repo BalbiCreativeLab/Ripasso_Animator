@@ -868,11 +868,11 @@ PlayerSettings:
   captureStartupLogs: {}
   activeInputHandler: 2
   windowsGamepadBackendHint: 0
-  cloudProjectId: 
+  cloudProjectId: ff03d384-1d92-48d3-aacc-00f86e15fa4b
   framebufferDepthMemorylessMode: 0
   qualitySettingsNames: []
-  projectName: Platformer3DClient
-  organizationId: 
+  projectName: Ripasso_Animator
+  organizationId: unity_f9d6142770cfefb68580
   cloudEnabled: 0
   legacyClampBlendShapeWeights: 1
   hmiLoadingImage: {fileID: 0}
