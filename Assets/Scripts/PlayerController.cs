@@ -1,6 +1,15 @@
 using System.Collections;
 using UnityEngine;
 
+enum CharacterState
+{
+    Idle, 
+    Walk,
+    Sprint,
+    Jump,
+    Airborne,
+}
+
 [RequireComponent(typeof(Animator))]
 [RequireComponent(typeof(CharacterController))]
 
@@ -19,6 +28,9 @@ public class PlayerController : MonoBehaviour
     Vector3 initialPosition;
     Vector3 currentVelocity = Vector3.zero;
     Vector3 targetVelocity;
+    Vector3 targetMove;
+
+    [SerializeField] CharacterState currentState;
 
     public Vector3 currentDir, dirVelocity;
 
@@ -33,6 +45,7 @@ public class PlayerController : MonoBehaviour
 
         smoothSpeed = new SmoothFloat(0.2f);
         currentVelocity = Vector3.zero;
+        currentState = CharacterState.Idle;
     }
 
     // Update is called once per frame
@@ -40,19 +53,95 @@ public class PlayerController : MonoBehaviour
     {
         initialPosition = transform.position;
 
+        switch(currentState)
+        {
+            case CharacterState.Idle:
+                IdleState();                
+                break;
+            case CharacterState.Walk:
+                WalkState();
+                break;
+            case CharacterState.Sprint:
+                SprintState();
+                break;
+            case CharacterState.Jump:
+                JumpState();
+                break;
+            case CharacterState.Airborne:
+                AirborneState();
+                break;
+            default:
+                Debug.LogError("STATO NON TROVATO!!!!!!!!");
+                break;
+        }
+        
+        /*
         Movement();
         ApplyJump();
         ApplyGravity();
         RotateCharacter();
+        */
 
         animator.SetBool("IsGrounded", groundSensor.isGrounded);
         animator.SetFloat("VerticalSpeed", currentVelocity.y);
+    }
+
+    private void OnAnimatorMove()
+    {
+        characterController.Move(targetMove);
     }
 
     private void LateUpdate()
     {
         currentVelocity = (transform.position - initialPosition) / Time.deltaTime ;
     }
+
+    void IdleState()
+    {
+        if(direction.magnitude > 0)
+        {
+            currentState = CharacterState.Walk;
+            return;
+        }
+
+        targetMove = Vector3.zero;
+        animator.SetFloat("Speed", smoothSpeed.GetAndUpdateValue(0));
+    }
+
+    void WalkState()
+    {
+        if(direction.magnitude == 0)
+        {
+            currentState = CharacterState.Idle;
+            return;
+        }
+
+        Vector3 dir = new Vector3(direction.x, 0, direction.y);
+        correctedDir = Quaternion.AngleAxis(cam.transform.eulerAngles.y, Vector3.up) * dir;
+        animator.SetFloat("Speed", smoothSpeed.GetAndUpdateValue(direction.magnitude));
+        targetMove = animator.deltaPosition;
+        RotateCharacter();
+    }
+
+    void SprintState()
+    {
+        Vector3 dir = new Vector3(direction.x, 0, direction.y);
+        correctedDir = Quaternion.AngleAxis(cam.transform.eulerAngles.y, Vector3.up) * dir;
+        animator.SetFloat("Speed", smoothSpeed.GetAndUpdateValue(direction.magnitude * 2));
+        targetMove = animator.deltaPosition;
+        RotateCharacter();
+    }
+
+    void JumpState()
+    {
+        targetMove = Vector3.up * 2;
+    }
+
+    void AirborneState()
+    {
+        targetMove = Vector3.down * 0.1f;
+    }
+
 
     void Movement()
     {
@@ -61,7 +150,7 @@ public class PlayerController : MonoBehaviour
 
         if (isSprinting)
         {
-            animator.SetFloat("Speed", smoothSpeed.GetAndUpdateValue(direction.magnitude*2));
+            
         }
         else
         {
