@@ -1,5 +1,8 @@
 using UnityEngine;
 
+// Questa classe viene usata come tipo di variabile custom,
+// serve per salvare una variabile di tipo float che ha la possibilita' di
+// variare nel tempo in modo 'morbido' tramite interpolazione
 public class SmoothFloat
 {
     public float currentValue;

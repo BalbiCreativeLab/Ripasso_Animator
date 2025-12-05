@@ -1,6 +1,9 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+// Questo script gestisce solo gli input del giocatore e li rimanda al player controller,
+// non gestisce nessuna logica
+
 [RequireComponent(typeof(PlayerController))]
 
 public class PlayerInput : MonoBehaviour

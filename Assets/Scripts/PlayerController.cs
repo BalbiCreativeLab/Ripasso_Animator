@@ -1,6 +1,7 @@
 using System.Collections;
 using UnityEngine;
 
+// Selettore custom utilizzato per gli stati possibili del personaggio
 enum CharacterState
 {
     Idle, 
@@ -30,13 +31,14 @@ public class PlayerController : MonoBehaviour
     Vector3 targetVelocity;
     Vector3 targetMove;
 
+    // Qui verra' salvato lo stato corrente del personaggio, usando l'enum creato in precedenza
     [SerializeField] CharacterState currentState;
 
     public Vector3 currentDir, dirVelocity;
 
     SmoothFloat smoothSpeed;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    // Collegamento ai componenti del player in scena e setup variabili
     void Start()
     {
         animator = GetComponent<Animator>();
@@ -53,6 +55,7 @@ public class PlayerController : MonoBehaviour
     {
         initialPosition = transform.position;
 
+        // Logica principale della state machine, in base allo stato corrente lancia la funzione legata a quello stato
         switch(currentState)
         {
             case CharacterState.Idle:
@@ -86,16 +89,26 @@ public class PlayerController : MonoBehaviour
         animator.SetFloat("VerticalSpeed", currentVelocity.y);
     }
 
+    // Questa funzione viene richiamata da Unity dopo l'elaborazione dell'animator, serve per applicare o leggere la root motion
+    // senza che lo faccia Unity in automatico
+    // In questo caso in base a come viene impostato targetMove dallo stato corrente applico quello spostamento al personaggio
     private void OnAnimatorMove()
     {
         characterController.Move(targetMove);
     }
 
+    // LateUpdate viene richiamato dopo Update e OnAnimatorMove
+    // ci serve per salvarci la velocita' del personaggio in base a quanto si e' spostato rispetto all'inizio del frame
     private void LateUpdate()
     {
         currentVelocity = (transform.position - initialPosition) / Time.deltaTime ;
     }
 
+
+    // Qui di seguito sono presenti le varie funzioni legate agli stati
+    // implementano la logica che in base allo stato corrente del personaggio verra' elaborata
+
+    #region FUNCTION_STATES
     void IdleState()
     {
         if(direction.magnitude > 0)
@@ -142,6 +155,7 @@ public class PlayerController : MonoBehaviour
         targetMove = Vector3.down * 0.1f;
     }
 
+    #endregion
 
     void Movement()
     {
