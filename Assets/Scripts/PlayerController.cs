@@ -17,8 +17,8 @@ enum CharacterState
 public class PlayerController : MonoBehaviour
 {
     public Vector2 direction;
-    public bool isSprinting = false;
-    public bool isJumping = false;
+    public bool requestSprinting = false;
+    public bool requestJumping = false;
 
     Animator animator;
     CharacterController characterController;
@@ -84,8 +84,6 @@ public class PlayerController : MonoBehaviour
         ApplyGravity();
         RotateCharacter();
         */
-
-        animator.SetBool("IsGrounded", groundSensor.isGrounded);
         animator.SetFloat("VerticalSpeed", currentVelocity.y);
     }
 
@@ -111,15 +109,26 @@ public class PlayerController : MonoBehaviour
     #region FUNCTION_STATES
     void IdleState()
     {
+        // controllo se il playerinput ha richiesto un salto
+        if(requestJumping == true)
+        {
+            requestJumping = false;
+            currentState = CharacterState.Jump;
+            return;
+        }
+
+        if (CheckIsAirborne())
+            return;
+
         // controllo se ho ricevuto input per muovermi
-        if(direction.magnitude > 0 && !isSprinting)
+        if(direction.magnitude > 0 && !requestSprinting)
         {
             currentState = CharacterState.Walk;
             return;
         }
 
         // transizione a sprint
-        if(direction.magnitude > 0 && isSprinting)
+        if(direction.magnitude > 0 && requestSprinting)
         {
             currentState = CharacterState.Sprint;
             return;
@@ -131,15 +140,25 @@ public class PlayerController : MonoBehaviour
 
     void WalkState()
     {
+        if (requestJumping == true)
+        {
+            requestJumping = false;
+            currentState = CharacterState.Jump;
+            return;
+        }
+
+        if (CheckIsAirborne())
+            return;
+
         // controllo se non ho input, quindi torno a idle
-        if(direction.magnitude == 0)
+        if (direction.magnitude == 0)
         {
             currentState = CharacterState.Idle;
             return;
         }
 
         // transizione a sprint
-        if (direction.magnitude > 0 && isSprinting)
+        if (direction.magnitude > 0 && requestSprinting)
         {
             currentState = CharacterState.Sprint;
             return;
@@ -154,13 +173,21 @@ public class PlayerController : MonoBehaviour
 
     void SprintState()
     {
+        if (requestJumping == true)
+        {
+            requestJumping = false;
+        }
+
+        if (CheckIsAirborne())
+            return;
+
         // controllo se non ho input, quindi torno a idle
         if (direction.magnitude == 0)
         {
             currentState = CharacterState.Idle;
             return;
         }
-        else if (isSprinting == false)
+        else if (requestSprinting == false)
         {
             currentState = CharacterState.Walk;
             return;
@@ -176,21 +203,44 @@ public class PlayerController : MonoBehaviour
     void JumpState()
     {
         targetMove = Vector3.up * 2;
+        currentState = CharacterState.Airborne;
+        animator.SetTrigger("Jump");
     }
 
     void AirborneState()
     {
+        if (groundSensor.isGrounded)
+        {
+            currentState = CharacterState.Idle;
+            animator.SetBool("IsGrounded", true);
+            return;
+        }
+
+        animator.SetBool("IsGrounded", false);
         targetMove = Vector3.down * 0.1f;
     }
 
     #endregion
+
+    bool CheckIsAirborne()
+    {
+        if (groundSensor.isGrounded)
+        {
+            return false;
+        }
+        else
+        {
+            currentState = CharacterState.Airborne;
+            return true;
+        }
+    }
 
     void Movement()
     {
         Vector3 dir = new Vector3(direction.x, 0, direction.y);
         correctedDir = Quaternion.AngleAxis(cam.transform.eulerAngles.y, Vector3.up) * dir;
 
-        if (isSprinting)
+        if (requestSprinting)
         {
             
         }
@@ -214,19 +264,19 @@ public class PlayerController : MonoBehaviour
             transform.rotation = Quaternion.LookRotation(currentDir, Vector3.up);
     }
 
-    public void Jump()
-    {
-        if(groundSensor.isGrounded)
-        {
-            isJumping = true;
-            //StartCoroutine(JumpCoroutine());
-            animator.SetTrigger("Jump");
-            currentVelocity.y = 10;
-        }
-    }
+    //public void Jump()
+    //{
+    //    if(groundSensor.isGrounded)
+    //    {
+    //        requestJumping = true;
+    //        //StartCoroutine(JumpCoroutine());
+    //        //animator.SetTrigger("Jump");
+    //        //currentVelocity.y = 10;
+    //    }
+    //}
     private void ApplyJump()
     {
-        if (isJumping)
+        if (requestJumping)
         {
             //characterController.Move(Vector3.up * Time.deltaTime * 10);
         }
@@ -235,6 +285,6 @@ public class PlayerController : MonoBehaviour
     IEnumerator JumpCoroutine()
     {
         yield return new WaitForSeconds(0.3f);
-        isJumping = false;
+        requestJumping = false;
     }
 }

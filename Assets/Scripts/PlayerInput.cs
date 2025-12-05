@@ -34,11 +34,11 @@ public class PlayerInput : MonoBehaviour
 
     void SetSprint(InputAction.CallbackContext context)
     {
-        controller.isSprinting = context.ReadValueAsButton();
+        controller.requestSprinting = context.ReadValueAsButton();
     }
 
     void Jump(InputAction.CallbackContext context)
     {
-        controller.Jump();
+        controller.requestJumping = true;
     }
 }
