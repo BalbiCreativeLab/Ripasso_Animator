@@ -111,9 +111,17 @@ public class PlayerController : MonoBehaviour
     #region FUNCTION_STATES
     void IdleState()
     {
-        if(direction.magnitude > 0)
+        // controllo se ho ricevuto input per muovermi
+        if(direction.magnitude > 0 && !isSprinting)
         {
             currentState = CharacterState.Walk;
+            return;
+        }
+
+        // transizione a sprint
+        if(direction.magnitude > 0 && isSprinting)
+        {
+            currentState = CharacterState.Sprint;
             return;
         }
 
@@ -123,9 +131,17 @@ public class PlayerController : MonoBehaviour
 
     void WalkState()
     {
+        // controllo se non ho input, quindi torno a idle
         if(direction.magnitude == 0)
         {
             currentState = CharacterState.Idle;
+            return;
+        }
+
+        // transizione a sprint
+        if (direction.magnitude > 0 && isSprinting)
+        {
+            currentState = CharacterState.Sprint;
             return;
         }
 
@@ -138,6 +154,18 @@ public class PlayerController : MonoBehaviour
 
     void SprintState()
     {
+        // controllo se non ho input, quindi torno a idle
+        if (direction.magnitude == 0)
+        {
+            currentState = CharacterState.Idle;
+            return;
+        }
+        else if (isSprinting == false)
+        {
+            currentState = CharacterState.Walk;
+            return;
+        }
+
         Vector3 dir = new Vector3(direction.x, 0, direction.y);
         correctedDir = Quaternion.AngleAxis(cam.transform.eulerAngles.y, Vector3.up) * dir;
         animator.SetFloat("Speed", smoothSpeed.GetAndUpdateValue(direction.magnitude * 2));
