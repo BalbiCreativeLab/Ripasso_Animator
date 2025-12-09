@@ -1,4 +1,5 @@
 using System.Collections;
+using Unity.VisualScripting;
 using UnityEngine;
 
 // Selettore custom utilizzato per gli stati possibili del personaggio
@@ -18,6 +19,7 @@ public class PlayerController : MonoBehaviour
 {
     public Vector2 direction;
     public bool requestSprinting = false;
+    [Tooltip("Requesting Jump")]
     public bool requestJumping = false;
 
     Animator animator;
@@ -37,6 +39,14 @@ public class PlayerController : MonoBehaviour
     public Vector3 currentDir, dirVelocity;
 
     SmoothFloat smoothSpeed;
+
+    [Space(10)]
+    public float gravity = 9.81f;
+    [Range(0.1f, 2f)]
+    public float fallMultiplier = 1.5f;
+    [Range(0.1f, 10f)]
+    public float inertia = 0.7f;
+    public float fallMovement = 1f;
 
     // Collegamento ai componenti del player in scena e setup variabili
     void Start()
@@ -99,9 +109,15 @@ public class PlayerController : MonoBehaviour
     // ci serve per salvarci la velocita' del personaggio in base a quanto si e' spostato rispetto all'inizio del frame
     private void LateUpdate()
     {
-        currentVelocity = (transform.position - initialPosition) / Time.deltaTime ;
-    }
+        currentVelocity = (transform.position - initialPosition) / Time.deltaTime;
 
+        //if (currentState == CharacterState.Jump)
+        //{
+        //    currentState = CharacterState.Airborne;
+        //    currentVelocity.y = 0;
+        //}
+        print(currentVelocity);
+    }
 
     // Qui di seguito sono presenti le varie funzioni legate agli stati
     // implementano la logica che in base allo stato corrente del personaggio verra' elaborata
@@ -203,7 +219,6 @@ public class PlayerController : MonoBehaviour
     void JumpState()
     {
         targetMove = Vector3.up * 2;
-        currentState = CharacterState.Airborne;
         animator.SetTrigger("Jump");
     }
 
@@ -217,7 +232,15 @@ public class PlayerController : MonoBehaviour
         }
 
         animator.SetBool("IsGrounded", false);
-        targetMove = Vector3.down * 0.1f;
+        //applico drag -> attrito aerodinamico
+        currentVelocity = currentVelocity.normalized * (currentVelocity.magnitude - (inertia * Time.deltaTime));
+        // caduta
+        targetMove = (currentVelocity - (Vector3.up * gravity * fallMultiplier * Time.deltaTime)) * Time.deltaTime;
+
+        //movimento giocatore in aria
+        Vector3 dir = new Vector3(direction.x, 0, direction.y);
+        correctedDir = Quaternion.AngleAxis(cam.transform.eulerAngles.y, Vector3.up) * dir;
+        targetMove = targetMove + (correctedDir * fallMovement * Time.deltaTime); 
     }
 
     #endregion

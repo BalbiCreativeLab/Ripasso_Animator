@@ -1684,12 +1684,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   direction: {x: 0, y: 0}
-  isSprinting: 0
-  isJumping: 0
+  requestSprinting: 0
+  requestJumping: 0
   cam: {fileID: 762725544}
   currentState: 2
   currentDir: {x: 0, y: 0, z: 0}
   dirVelocity: {x: 0, y: 0, z: 0}
+  gravity: 9.81
+  fallMultiplier: 1
+  inertia: 10
+  fallMovement: 0.01
 --- !u!4 &737690598 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3688416429531660827, guid: 794893e46899aa846b430789f1c6be49,
