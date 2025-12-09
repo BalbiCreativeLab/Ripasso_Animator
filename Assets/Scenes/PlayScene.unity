@@ -1691,9 +1691,11 @@ MonoBehaviour:
   currentDir: {x: 0, y: 0, z: 0}
   dirVelocity: {x: 0, y: 0, z: 0}
   gravity: 9.81
-  fallMultiplier: 1
+  fallMultiplier: 7.45
   inertia: 10
   fallMovement: 0.01
+  jumpDuration: 0.2
+  jumpHeight: 2
 --- !u!4 &737690598 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3688416429531660827, guid: 794893e46899aa846b430789f1c6be49,

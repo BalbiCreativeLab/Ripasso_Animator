@@ -8,6 +8,7 @@ enum CharacterState
     Idle, 
     Walk,
     Sprint,
+    StartJump,
     Jump,
     Airborne,
 }
@@ -48,6 +49,10 @@ public class PlayerController : MonoBehaviour
     public float inertia = 0.7f;
     public float fallMovement = 1f;
 
+    [Space(10)]
+    public float jumpDuration = 0.5f;
+    public float jumpHeight = 2f;
+
     // Collegamento ai componenti del player in scena e setup variabili
     void Start()
     {
@@ -77,6 +82,9 @@ public class PlayerController : MonoBehaviour
             case CharacterState.Sprint:
                 SprintState();
                 break;
+            case CharacterState.StartJump:
+                StartJumpState();
+                break;
             case CharacterState.Jump:
                 JumpState();
                 break;
@@ -88,12 +96,6 @@ public class PlayerController : MonoBehaviour
                 break;
         }
         
-        /*
-        Movement();
-        ApplyJump();
-        ApplyGravity();
-        RotateCharacter();
-        */
         animator.SetFloat("VerticalSpeed", currentVelocity.y);
     }
 
@@ -110,13 +112,6 @@ public class PlayerController : MonoBehaviour
     private void LateUpdate()
     {
         currentVelocity = (transform.position - initialPosition) / Time.deltaTime;
-
-        //if (currentState == CharacterState.Jump)
-        //{
-        //    currentState = CharacterState.Airborne;
-        //    currentVelocity.y = 0;
-        //}
-        print(currentVelocity);
     }
 
     // Qui di seguito sono presenti le varie funzioni legate agli stati
@@ -129,7 +124,7 @@ public class PlayerController : MonoBehaviour
         if(requestJumping == true)
         {
             requestJumping = false;
-            currentState = CharacterState.Jump;
+            currentState = CharacterState.StartJump;
             return;
         }
 
@@ -159,7 +154,7 @@ public class PlayerController : MonoBehaviour
         if (requestJumping == true)
         {
             requestJumping = false;
-            currentState = CharacterState.Jump;
+            currentState = CharacterState.StartJump;
             return;
         }
 
@@ -192,6 +187,8 @@ public class PlayerController : MonoBehaviour
         if (requestJumping == true)
         {
             requestJumping = false;
+            currentState = CharacterState.StartJump;
+            return;
         }
 
         if (CheckIsAirborne())
@@ -216,10 +213,28 @@ public class PlayerController : MonoBehaviour
         RotateCharacter();
     }
 
+    void StartJumpState()
+    {
+        StartCoroutine(JumpCoroutine());
+    }
+
     void JumpState()
     {
-        targetMove = Vector3.up * 2;
+        requestJumping = false;
+        // Aggiungo la velocita' corrente
+        targetMove = currentVelocity * Time.deltaTime;
+        // Aggiungo l'altezza di salto
+        targetMove.y = jumpHeight * Time.deltaTime / jumpDuration;
+    }
+
+    // solo dopo jumpDuration usciro' dallo stato di salto
+    // e quindi non applichero' piu' la jumpHeight
+    IEnumerator JumpCoroutine()
+    {
         animator.SetTrigger("Jump");
+        currentState = CharacterState.Jump;
+        yield return new WaitForSeconds(jumpDuration);
+        currentState = CharacterState.Airborne;
     }
 
     void AirborneState()
@@ -231,6 +246,9 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
+        //nel caso fossi in aria "consumo le richieste di salto date dall'input"
+        requestJumping = false;
+
         animator.SetBool("IsGrounded", false);
         //applico drag -> attrito aerodinamico
         currentVelocity = currentVelocity.normalized * (currentVelocity.magnitude - (inertia * Time.deltaTime));
@@ -240,7 +258,7 @@ public class PlayerController : MonoBehaviour
         //movimento giocatore in aria
         Vector3 dir = new Vector3(direction.x, 0, direction.y);
         correctedDir = Quaternion.AngleAxis(cam.transform.eulerAngles.y, Vector3.up) * dir;
-        targetMove = targetMove + (correctedDir * fallMovement * Time.deltaTime); 
+        targetMove = targetMove + (correctedDir * fallMovement * Time.deltaTime);
     }
 
     #endregion
@@ -258,56 +276,11 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    void Movement()
-    {
-        Vector3 dir = new Vector3(direction.x, 0, direction.y);
-        correctedDir = Quaternion.AngleAxis(cam.transform.eulerAngles.y, Vector3.up) * dir;
-
-        if (requestSprinting)
-        {
-            
-        }
-        else
-        {
-            animator.SetFloat("Speed", smoothSpeed.GetAndUpdateValue(direction.magnitude));
-        }
-    }
-
-    void ApplyGravity()
-    {
-        //if(!groundSensor.isGrounded)
-        //characterController.Move(Vector3.up * ((currentVelocity.y) * Time.deltaTime));
-    }
-
     void RotateCharacter()
     {
         currentDir = Vector3.Slerp(currentDir, correctedDir, Time.deltaTime * 5f);
 
         if(direction.magnitude > 0)
             transform.rotation = Quaternion.LookRotation(currentDir, Vector3.up);
-    }
-
-    //public void Jump()
-    //{
-    //    if(groundSensor.isGrounded)
-    //    {
-    //        requestJumping = true;
-    //        //StartCoroutine(JumpCoroutine());
-    //        //animator.SetTrigger("Jump");
-    //        //currentVelocity.y = 10;
-    //    }
-    //}
-    private void ApplyJump()
-    {
-        if (requestJumping)
-        {
-            //characterController.Move(Vector3.up * Time.deltaTime * 10);
-        }
-    }
-
-    IEnumerator JumpCoroutine()
-    {
-        yield return new WaitForSeconds(0.3f);
-        requestJumping = false;
     }
 }
