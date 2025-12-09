@@ -52,6 +52,8 @@ public class PlayerController : MonoBehaviour
     [Space(10)]
     public float jumpDuration = 0.5f;
     public float jumpHeight = 2f;
+    public float jumpHorizontalPush = 2f;
+    Vector3 initialJumpVelocity;
 
     // Collegamento ai componenti del player in scena e setup variabili
     void Start()
@@ -104,6 +106,12 @@ public class PlayerController : MonoBehaviour
     // In questo caso in base a come viene impostato targetMove dallo stato corrente applico quello spostamento al personaggio
     private void OnAnimatorMove()
     {
+        // se non stiamo saltando aggiungiamo una forza verso il basso per tenere il personaggio attaccato a terra
+        if (currentState != CharacterState.Jump && currentState != CharacterState.Airborne)
+        {
+            targetMove += Vector3.down * 20f * Time.deltaTime;
+        }
+
         characterController.Move(targetMove);
     }
 
@@ -222,7 +230,7 @@ public class PlayerController : MonoBehaviour
     {
         requestJumping = false;
         // Aggiungo la velocita' corrente
-        targetMove = currentVelocity * Time.deltaTime;
+        targetMove = initialJumpVelocity * Time.deltaTime * jumpHorizontalPush;
         // Aggiungo l'altezza di salto
         targetMove.y = jumpHeight * Time.deltaTime / jumpDuration;
     }
@@ -232,6 +240,7 @@ public class PlayerController : MonoBehaviour
     IEnumerator JumpCoroutine()
     {
         animator.SetTrigger("Jump");
+        initialJumpVelocity = currentVelocity;
         currentState = CharacterState.Jump;
         yield return new WaitForSeconds(jumpDuration);
         currentState = CharacterState.Airborne;
