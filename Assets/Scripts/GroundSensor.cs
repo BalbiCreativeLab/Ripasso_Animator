@@ -25,28 +25,31 @@ public class GroundSensor : MonoBehaviour
 
         if (!isTimerStarted && !isGrounded)
         {
-            print("START TIMER");
+            // avvio il timer se non sono piu' per terra e il timer non e' gia' attivo
             isGrounded = true;
             isTimerStarted = true;
             startTime = Time.time;
         }
         else if (isTimerStarted)
         {
+            //invece se il timer e' attivo...
             if(!isGrounded)
             {
                 if (Time.time - startTime > delay)
                 {
-                    print("TIMER ELAPSED");
+                    // se il timer ha superato il tempo di delay imposto effettivamente isGrounded a falso, per dire agli script esterni che
+                    // sono per aria
                     isGrounded = false;
                 }
                 else
                 {
+                    // se continuo ad essere per aria e il timer non ha superato il tempo di delay, forzo isGrounded a vero
                     isGrounded = true;
                 }
             }
             else
             {
-                print("TIMER STOPPED, back to ground");
+                // se prima che scada il timer raggiungo il terreno, resetto il timer
                 isTimerStarted = false;
             }
         }
