@@ -110,9 +110,8 @@ public class PlayerController : MonoBehaviour
         // se non stiamo saltando aggiungiamo una forza verso il basso per tenere il personaggio attaccato a terra
         if (currentState != CharacterState.Jump && currentState != CharacterState.Airborne)
         {
-            targetMove += Vector3.down * 20f * Time.deltaTime;
+            targetMove += Vector3.down * 1f * Time.deltaTime;
         }
-
         characterController.Move(targetMove);
     }
 
@@ -187,7 +186,7 @@ public class PlayerController : MonoBehaviour
         Vector3 dir = new Vector3(direction.x, 0, direction.y);
         correctedDir = Quaternion.AngleAxis(cam.transform.eulerAngles.y, Vector3.up) * dir;
         animator.SetFloat("Speed", smoothSpeed.GetAndUpdateValue(direction.magnitude));
-        targetMove = animator.deltaPosition;
+        targetMove = Vector3.ProjectOnPlane(animator.deltaPosition, groundSensor.groundNormal);
         RotateCharacter();
     }
 
@@ -214,11 +213,10 @@ public class PlayerController : MonoBehaviour
             currentState = CharacterState.Walk;
             return;
         }
-
         Vector3 dir = new Vector3(direction.x, 0, direction.y);
         correctedDir = Quaternion.AngleAxis(cam.transform.eulerAngles.y, Vector3.up) * dir;
         animator.SetFloat("Speed", smoothSpeed.GetAndUpdateValue(direction.magnitude * 2));
-        targetMove = animator.deltaPosition;
+        targetMove = Vector3.ProjectOnPlane(animator.deltaPosition, groundSensor.groundNormal);
         RotateCharacter();
     }
 
