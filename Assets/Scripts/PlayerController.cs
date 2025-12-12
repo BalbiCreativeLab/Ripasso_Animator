@@ -98,6 +98,7 @@ public class PlayerController : MonoBehaviour
                 break;
         }
         
+        animator.SetBool("IsGrounded", groundSensor.isGrounded);
         animator.SetFloat("VerticalSpeed", currentVelocity.y);
     }
 
