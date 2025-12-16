@@ -3,7 +3,7 @@ using Unity.VisualScripting;
 using UnityEngine;
 
 [RequireComponent(typeof(Animator))]
-[RequireComponent(typeof(CharacterController))]
+[RequireComponent(typeof(Rigidbody))]
 
 public class PlayerControllerRB : MonoBehaviour
 {
@@ -13,7 +13,7 @@ public class PlayerControllerRB : MonoBehaviour
     public bool requestJumping = false;
 
     Animator animator;
-    CharacterController characterController;
+    Rigidbody rb;
     GroundSensor groundSensor;
     [SerializeField] Camera cam;
 
@@ -47,7 +47,7 @@ public class PlayerControllerRB : MonoBehaviour
     void Start()
     {
         animator = GetComponent<Animator>();
-        characterController = GetComponent<CharacterController>();
+        rb = GetComponent<Rigidbody>();
         groundSensor = GetComponentInChildren<GroundSensor>();
 
         smoothSpeed = new SmoothFloat(0.2f);
@@ -100,7 +100,7 @@ public class PlayerControllerRB : MonoBehaviour
         {
             targetMove += Vector3.down * 1f * Time.deltaTime;
         }
-        characterController.Move(targetMove);
+        rb.MovePosition(targetMove);
     }
 
     // LateUpdate viene richiamato dopo Update e OnAnimatorMove

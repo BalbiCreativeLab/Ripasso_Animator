@@ -4,16 +4,16 @@ using UnityEngine.InputSystem;
 // Questo script gestisce solo gli input del giocatore e li rimanda al player controller,
 // non gestisce nessuna logica
 
-[RequireComponent(typeof(PlayerController))]
+[RequireComponent(typeof(PlayerControllerRB))]
 
 public class PlayerInputRB : MonoBehaviour
 {
-    PlayerController controller;
+    PlayerControllerRB controller;
     InputAction moveAction, sprintAction, jumpAction;
 
     void Start()
     {
-        controller = GetComponent<PlayerController>();
+        controller = GetComponent<PlayerControllerRB>();
 
         moveAction = InputSystem.actions.FindAction("Move");
         moveAction.performed += UpdateDirection;
