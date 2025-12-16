@@ -1,5 +1,5 @@
+using System;
 using System.Collections;
-using Unity.VisualScripting;
 using UnityEngine;
 
 [RequireComponent(typeof(Animator))]
@@ -18,9 +18,8 @@ public class PlayerControllerRB : MonoBehaviour
     [SerializeField] Camera cam;
 
     Vector3 correctedDir;
-    Vector3 initialPosition;
-    [SerializeField]Vector3 currentVelocity = Vector3.zero;
     Vector3 targetMove;
+    Vector3 currentVelocity;
 
     // Qui verra' salvato lo stato corrente del personaggio, usando l'enum creato in precedenza
     [SerializeField] CharacterState currentState;
@@ -38,10 +37,7 @@ public class PlayerControllerRB : MonoBehaviour
     public float fallMovement = 1f;
 
     [Space(10)]
-    public float jumpDuration = 0.5f;
     public float jumpHeight = 2f;
-    public float jumpHorizontalPush = 2f;
-    Vector3 initialJumpVelocity;
 
     // Collegamento ai componenti del player in scena e setup variabili
     void Start()
@@ -51,14 +47,12 @@ public class PlayerControllerRB : MonoBehaviour
         groundSensor = GetComponentInChildren<GroundSensor>();
 
         smoothSpeed = new SmoothFloat(0.2f);
-        currentVelocity = Vector3.zero;
         currentState = CharacterState.Idle;
     }
 
     // Update is called once per frame
     void Update()
     {
-        initialPosition = transform.position;
 
         // Logica principale della state machine, in base allo stato corrente lancia la funzione legata a quello stato
         switch(currentState)
@@ -72,7 +66,7 @@ public class PlayerControllerRB : MonoBehaviour
             case CharacterState.Sprint:
                 SprintState();
                 break;
-            case CharacterState.StartJump:
+            case CharacterState.StartJump: 
                 StartJumpState();
                 break;
             case CharacterState.Jump:
@@ -87,7 +81,7 @@ public class PlayerControllerRB : MonoBehaviour
         }
         
         animator.SetBool("IsGrounded", groundSensor.isGrounded);
-        animator.SetFloat("VerticalSpeed", currentVelocity.y);
+        animator.SetFloat("VerticalSpeed", rb.linearVelocity.y);
     }
 
     // Questa funzione viene richiamata da Unity dopo l'elaborazione dell'animator, serve per applicare o leggere la root motion
@@ -95,19 +89,13 @@ public class PlayerControllerRB : MonoBehaviour
     // In questo caso in base a come viene impostato targetMove dallo stato corrente applico quello spostamento al personaggio
     private void OnAnimatorMove()
     {
-        // se non stiamo saltando aggiungiamo una forza verso il basso per tenere il personaggio attaccato a terra
-        if (currentState != CharacterState.Jump && currentState != CharacterState.Airborne)
+        if (animator.applyRootMotion)
         {
-            targetMove += Vector3.down * 1f * Time.deltaTime;
-        }
-        rb.MovePosition(targetMove);
-    }
+            Vector3 tempMove = Vector3.ProjectOnPlane(animator.deltaPosition, groundSensor.groundNormal);
 
-    // LateUpdate viene richiamato dopo Update e OnAnimatorMove
-    // ci serve per salvarci la velocita' del personaggio in base a quanto si e' spostato rispetto all'inizio del frame
-    private void LateUpdate()
-    {
-        currentVelocity = (transform.position - initialPosition) / Time.deltaTime;
+            rb.MovePosition(rb.position + tempMove);
+            currentVelocity = tempMove / Time.deltaTime;
+        }
     }
 
     // Qui di seguito sono presenti le varie funzioni legate agli stati
@@ -141,6 +129,7 @@ public class PlayerControllerRB : MonoBehaviour
             return;
         }
 
+        animator.applyRootMotion = true;
         targetMove = Vector3.zero;
         animator.SetFloat("Speed", smoothSpeed.GetAndUpdateValue(0));
     }
@@ -212,49 +201,39 @@ public class PlayerControllerRB : MonoBehaviour
     {
         StartCoroutine(JumpCoroutine());
     }
-
+    IEnumerator JumpCoroutine()
+    {
+        rb.linearVelocity = currentVelocity;
+        rb.AddForce(Vector3.up * jumpHeight, ForceMode.VelocityChange);
+        animator.SetTrigger("Jump");
+        animator.applyRootMotion = false;
+        currentState = CharacterState.Jump;
+        yield return new WaitForSeconds(groundSensor.delay+0.01f);
+        currentState = CharacterState.Airborne;
+    }
     void JumpState()
     {
         requestJumping = false;
-        // Aggiungo la velocita' corrente
-        targetMove = initialJumpVelocity * Time.deltaTime * jumpHorizontalPush;
-        // Aggiungo l'altezza di salto
-        targetMove.y += jumpHeight * Time.deltaTime / jumpDuration;
-    }
-
-    // solo dopo jumpDuration usciro' dallo stato di salto
-    // e quindi non applichero' piu' la jumpHeight
-    IEnumerator JumpCoroutine()
-    {
-        animator.SetTrigger("Jump");
-        initialJumpVelocity = currentVelocity;
-        currentState = CharacterState.Jump;
-        yield return new WaitForSeconds(jumpDuration);
-        currentState = CharacterState.Airborne;
     }
 
     void AirborneState()
     {
         if (groundSensor.isGrounded)
         {
-            print("Returning to idle");
             currentState = CharacterState.Idle;
-            animator.SetBool("IsGrounded", true);
+            animator.applyRootMotion = true;
             return;
         }
 
         //nel caso fossi in aria "consumo le richieste di salto date dall'input"
         requestJumping = false;
-
-        //applico drag -> attrito aerodinamico
-        currentVelocity = currentVelocity.normalized * (currentVelocity.magnitude - (inertia * Time.deltaTime));
-        // caduta
-        targetMove = (currentVelocity - (Vector3.up * gravity * fallMultiplier * Time.deltaTime)) * Time.deltaTime;
+        animator.applyRootMotion = false;
 
         //movimento giocatore in aria
         Vector3 dir = new Vector3(direction.x, 0, direction.y);
         correctedDir = Quaternion.AngleAxis(cam.transform.eulerAngles.y, Vector3.up) * dir;
-        targetMove = targetMove + (correctedDir * fallMovement * Time.deltaTime);
+        rb.AddForce(correctedDir * fallMovement, ForceMode.Acceleration);
+
         RotateCharacter();
     }
 
@@ -275,9 +254,10 @@ public class PlayerControllerRB : MonoBehaviour
 
     void RotateCharacter()
     {
-        currentDir = Vector3.Slerp(currentDir, correctedDir, Time.deltaTime * 5f);
-
         if(direction.magnitude > 0)
-            transform.rotation = Quaternion.LookRotation(currentDir, Vector3.up);
+        {
+            currentDir = Vector3.Slerp(currentDir, correctedDir, Time.deltaTime * 5f);
+            rb.MoveRotation(Quaternion.LookRotation(currentDir, Vector3.up));
+        }
     }
 }

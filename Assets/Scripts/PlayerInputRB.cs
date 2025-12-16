@@ -23,8 +23,8 @@ public class PlayerInputRB : MonoBehaviour
         sprintAction.performed += SetSprint;
         sprintAction.canceled += SetSprint;
 
-        sprintAction = InputSystem.actions.FindAction("Jump");
-        sprintAction.performed += Jump;
+        jumpAction = InputSystem.actions.FindAction("Jump");
+        jumpAction.performed += Jump;
     }
 
     void UpdateDirection(InputAction.CallbackContext context)

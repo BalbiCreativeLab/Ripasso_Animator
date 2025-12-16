@@ -1,10 +1,10 @@
-using Unity.VisualScripting;
 using UnityEngine;
 
 // Questo 'sensore' controlla se un collider e' all'interno di un certo raggio a partire dal suo centro,
 // si potrebbe usare un Raycast al posto di OverlapSphere e filtrare i collider percepiti tramite layermask
 public class GroundSensor : MonoBehaviour
 {
+    public LayerMask includeMask;
     public float maxDistance = 0.06f;
     public float delay = 3;
     public bool enableDebug = true;
@@ -24,7 +24,7 @@ public class GroundSensor : MonoBehaviour
 
         RaycastHit hit;
 
-        if(Physics.Raycast(transform.position, Vector3.down, out hit, maxDistance))
+        if(Physics.Raycast(transform.position, Vector3.down, out hit, maxDistance, includeMask))
         {
             groundNormal = hit.normal;
             isGrounded = true;
