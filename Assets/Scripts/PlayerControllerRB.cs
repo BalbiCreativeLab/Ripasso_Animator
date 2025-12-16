@@ -86,7 +86,7 @@ public class PlayerControllerRB : MonoBehaviour
 
     // Questa funzione viene richiamata da Unity dopo l'elaborazione dell'animator, serve per applicare o leggere la root motion
     // senza che lo faccia Unity in automatico
-    // In questo caso in base a come viene impostato targetMove dallo stato corrente applico quello spostamento al personaggio
+    // In questo caso applichiamo lo spostamento dato dall'animator al rigidbody e poi calcoliamo la velocita', usata in seguito a inizio Jump
     private void OnAnimatorMove()
     {
         if (animator.applyRootMotion)
@@ -136,22 +136,15 @@ public class PlayerControllerRB : MonoBehaviour
 
     void WalkState()
     {
-        if (requestJumping == true)
-        {
-            requestJumping = false;
-            currentState = CharacterState.StartJump;
+        if (CheckIsJumpRequested())
             return;
-        }
 
         if (CheckIsAirborne())
             return;
 
         // controllo se non ho input, quindi torno a idle
-        if (direction.magnitude == 0)
-        {
-            currentState = CharacterState.Idle;
+        if (CheckNoMovement())
             return;
-        }
 
         // transizione a sprint
         if (direction.magnitude > 0 && requestSprinting)
@@ -159,41 +152,27 @@ public class PlayerControllerRB : MonoBehaviour
             currentState = CharacterState.Sprint;
             return;
         }
-
-        Vector3 dir = new Vector3(direction.x, 0, direction.y);
-        correctedDir = Quaternion.AngleAxis(cam.transform.eulerAngles.y, Vector3.up) * dir;
         animator.SetFloat("Speed", smoothSpeed.GetAndUpdateValue(direction.magnitude));
-        targetMove = Vector3.ProjectOnPlane(animator.deltaPosition, groundSensor.groundNormal);
         RotateCharacter();
     }
 
     void SprintState()
     {
-        if (requestJumping == true)
-        {
-            requestJumping = false;
-            currentState = CharacterState.StartJump;
+        if (CheckIsJumpRequested())
             return;
-        }
 
         if (CheckIsAirborne())
             return;
 
         // controllo se non ho input, quindi torno a idle
-        if (direction.magnitude == 0)
-        {
-            currentState = CharacterState.Idle;
+        if (CheckNoMovement())
             return;
-        }
         else if (requestSprinting == false)
         {
             currentState = CharacterState.Walk;
             return;
         }
-        Vector3 dir = new Vector3(direction.x, 0, direction.y);
-        correctedDir = Quaternion.AngleAxis(cam.transform.eulerAngles.y, Vector3.up) * dir;
         animator.SetFloat("Speed", smoothSpeed.GetAndUpdateValue(direction.magnitude * 2));
-        targetMove = Vector3.ProjectOnPlane(animator.deltaPosition, groundSensor.groundNormal);
         RotateCharacter();
     }
 
@@ -211,6 +190,7 @@ public class PlayerControllerRB : MonoBehaviour
         yield return new WaitForSeconds(groundSensor.delay+0.01f);
         currentState = CharacterState.Airborne;
     }
+
     void JumpState()
     {
         requestJumping = false;
@@ -226,15 +206,14 @@ public class PlayerControllerRB : MonoBehaviour
         }
 
         //nel caso fossi in aria "consumo le richieste di salto date dall'input"
+        // e disattivo la rootMotion
         requestJumping = false;
         animator.applyRootMotion = false;
 
-        //movimento giocatore in aria
-        Vector3 dir = new Vector3(direction.x, 0, direction.y);
-        correctedDir = Quaternion.AngleAxis(cam.transform.eulerAngles.y, Vector3.up) * dir;
-        rb.AddForce(correctedDir * fallMovement, ForceMode.Acceleration);
-
+        //movimento giocatore in aria, serve ruotare prima il character perche'
+        // ora aggiorniamo correctedDir dentro la funzione RotateCharacter()
         RotateCharacter();
+        rb.AddForce(correctedDir * fallMovement, ForceMode.Acceleration);
     }
 
     #endregion
@@ -252,12 +231,35 @@ public class PlayerControllerRB : MonoBehaviour
         }
     }
 
+    bool CheckIsJumpRequested()
+    {
+        if (requestJumping == true)
+        {
+            requestJumping = false;
+            currentState = CharacterState.StartJump;
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    bool CheckNoMovement()
+    {
+        if (direction.magnitude == 0)
+        {
+            currentState = CharacterState.Idle;
+            return true;
+        }
+        else
+            return false;
+    }
     void RotateCharacter()
     {
-        if(direction.magnitude > 0)
-        {
-            currentDir = Vector3.Slerp(currentDir, correctedDir, Time.deltaTime * 5f);
-            rb.MoveRotation(Quaternion.LookRotation(currentDir, Vector3.up));
-        }
+        Vector3 dir = new Vector3(direction.x, 0, direction.y);
+        correctedDir = Quaternion.AngleAxis(cam.transform.eulerAngles.y, Vector3.up) * dir;
+        currentDir = Vector3.Slerp(currentDir, correctedDir, Time.deltaTime * 5f);
+        rb.MoveRotation(Quaternion.LookRotation(currentDir, Vector3.up));
     }
 }
