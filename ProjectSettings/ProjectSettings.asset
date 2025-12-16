@@ -270,6 +270,9 @@ PlayerSettings:
   AndroidBuildApkPerCpuArchitecture: 0
   AndroidTVCompatibility: 1
   AndroidIsGame: 1
+  androidAppCategory: 3
+  useAndroidAppCategory: 1
+  androidAppCategoryOther: 
   AndroidEnableTango: 0
   androidEnableBanner: 1
   androidUseLowAccuracyLocation: 0
@@ -739,6 +742,7 @@ PlayerSettings:
     Kepler: UNITY_POST_PROCESSING_STACK_V2;EXTOSC
     LinuxHeadlessSimulation: UNITY_POST_PROCESSING_STACK_V2;EXTOSC
     Nintendo Switch: UNITY_POST_PROCESSING_STACK_V2;PROBUILDER_FBX_ENABLED;EXTOSC
+    Nintendo Switch 2: UNITY_POST_PROCESSING_STACK_V2
     PS4: UNITY_POST_PROCESSING_STACK_V2;PROBUILDER_FBX_ENABLED;EXTOSC
     PS5: UNITY_POST_PROCESSING_STACK_V2;EXTOSC
     QNX: UNITY_POST_PROCESSING_STACK_V2;EXTOSC

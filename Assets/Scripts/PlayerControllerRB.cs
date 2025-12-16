@@ -5,7 +5,7 @@ using UnityEngine;
 [RequireComponent(typeof(Animator))]
 [RequireComponent(typeof(CharacterController))]
 
-public class PlayerController : MonoBehaviour
+public class PlayerControllerRB : MonoBehaviour
 {
     public Vector2 direction;
     public bool requestSprinting = false;

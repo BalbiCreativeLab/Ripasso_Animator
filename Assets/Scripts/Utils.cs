@@ -1,5 +1,19 @@
 using UnityEngine;
 
+// Selettore custom utilizzato per gli stati possibili del personaggio
+enum CharacterState
+{
+    Idle,
+    Walk,
+    Sprint,
+    StartJump,
+    Jump,
+    Airborne,
+}
+
+
+
+
 // Questa classe viene usata come tipo di variabile custom,
 // serve per salvare una variabile di tipo float che ha la possibilita' di
 // variare nel tempo in modo 'morbido' tramite interpolazione

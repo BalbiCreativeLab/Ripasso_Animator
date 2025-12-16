@@ -60,17 +60,17 @@ public class GroundSensor : MonoBehaviour
 
     // Questa funzione viene lanciata quando Unity genera i Gizmo nell'editor, qui possiamo usare Gizmos per creare
     // riferimenti visivi personalizzati
-    //private void OnDrawGizmos()
-    //{
-    //    if (enableDebug == false)
-    //        return;
+    private void OnDrawGizmos()
+    {
+        if (enableDebug == false)
+            return;
 
-    //    Gizmos.color = Color.red;
-    //    if( isGrounded )
-    //    { 
-    //        Gizmos.color = Color.green;
-    //    }
+        Gizmos.color = Color.red;
+        if( isGrounded )
+        { 
+            Gizmos.color = Color.green;
+        }
 
-    //    Gizmos.DrawSphere(transform.position, maxDistance);
-    //}
+        Gizmos.DrawSphere(transform.position, maxDistance);
+    }
 }   
