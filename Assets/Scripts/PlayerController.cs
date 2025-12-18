@@ -237,7 +237,6 @@ public class PlayerController : MonoBehaviour
     {
         if (groundSensor.isGrounded)
         {
-            print("Returning to idle");
             currentState = CharacterState.Idle;
             animator.SetBool("IsGrounded", true);
             return;
