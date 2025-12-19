@@ -16,15 +16,15 @@ public class GameStateSingleton : MonoBehaviour
         // Se current non e' vuoto, allora esiste gia' un GameStateSingleton in scena, quindi non puo'
         // essercene un'altro e mi autodistruggo
         // Altrimenti riempio Current con me stesso
-        if (Current != null)
-            Destroy(this);
-        else
+        if (Current == null)
             Current = this;
+        else
+            Destroy(this);
     }
 
-    public void AddScore(int score)
+    public void AddScore(int _score)
     {
-        this.score += score;
-        OnScoreAdd?.Invoke(this.score);
+        score += _score;
+        OnScoreAdd?.Invoke(score);
     }
 }
