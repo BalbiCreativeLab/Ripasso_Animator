@@ -18,5 +18,7 @@ public static class GameState
     {
         collectibles++;
         OnCollectiblePick?.Invoke(collectibles);
+
+        Vector3 vectorVar = Vector3.up;
     }
 }

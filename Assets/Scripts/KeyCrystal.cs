@@ -7,7 +7,7 @@ public class KeyCrystal : MonoBehaviour, IInteractable
         return false;
     }
 
-    public bool Interact(GameObject instigator = null)
+    public bool Interact(GameObject instigator)
     {
         if(instigator.TryGetComponent(out PlayerInteractor playerInteractor))
         {

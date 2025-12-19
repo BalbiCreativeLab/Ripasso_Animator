@@ -16,8 +16,7 @@ public class PlayerInteractor : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         IInteractable itr = other.gameObject.GetComponentInChildren<IInteractable>();
-
-        if(itr != null)
+        if (itr != null)
         {
             interactObj = other.gameObject;
             interactable = itr;
