@@ -2,6 +2,8 @@ using UnityEngine;
 
 public class DestructibleBox : MonoBehaviour, IInteractable
 {
+    public GameObject destructibleBox;
+
     public bool GetState()
     {
         return false;
@@ -9,7 +11,8 @@ public class DestructibleBox : MonoBehaviour, IInteractable
 
     public bool Interact(GameObject obj = null)
     {
-        print( obj.name + " HA INTERAGITO CON CASSA!");
+        gameObject.SetActive(false);
+        destructibleBox?.SetActive(true);
         return true;
     }
 

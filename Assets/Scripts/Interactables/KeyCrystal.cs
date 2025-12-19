@@ -1,7 +1,13 @@
+using System.Collections;
 using UnityEngine;
 
 public class KeyCrystal : MonoBehaviour, IInteractable
 {
+    private void OnEnable()
+    {
+        StartCoroutine(Delay());    
+    }
+
     public bool GetState()
     {
         return false;
@@ -27,5 +33,11 @@ public class KeyCrystal : MonoBehaviour, IInteractable
 
     public void Toggle()
     {
+    }
+
+    IEnumerator Delay()
+    {
+        yield return new WaitForSeconds(0.2f);
+        GetComponent<ConstantForce>().enabled = false;
     }
 }

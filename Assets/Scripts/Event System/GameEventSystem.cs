@@ -1,17 +1,9 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 public class GameEvent
 {
-    public Action<GameEventData> listeners;
-    public GameEventData eventData;
-
-    public void Invoke(GameEventData data)
-    {
-        listeners.Invoke(data);
-    }
 }
 
 public class GameEventData
@@ -52,41 +44,41 @@ public class GameEventData
 
 public static class GameEventSystem
 {
-    static Dictionary<string, Action<GameEventData>> events = new Dictionary<string, Action<GameEventData>>();
+    static Dictionary<Type, Action<GameEventData>> events = new Dictionary<Type, Action<GameEventData>>();
 
 
-    public static void AddEvent(string eventName)
+    public static void AddEvent(Type eventType)
     {
-        if (events.ContainsKey(eventName))
+        if (events.ContainsKey(eventType))
             return;
 
         Action<GameEventData> newEvent = delegate {  };
-        events.Add(eventName, newEvent);
+        events.Add(eventType, newEvent);
     }
 
-    public static void RemoveEvent(string eventName)
+    public static void RemoveEvent(Type eventType)
     {
-        if (!events.ContainsKey(eventName))
+        if (!events.ContainsKey(eventType))
             return;
 
-        events.Remove(eventName);
+        events.Remove(eventType);
     }
 
-    public static void Subscribe(string eventName, Action<GameEventData> listener)
+    public static void Subscribe(Type eventType, Action<GameEventData> listener)
     {
-        if (events.ContainsKey(eventName))
-            events[eventName] += listener;
+        if (events.ContainsKey(eventType))
+            events[eventType] += listener;
     }
 
-    public static void Unsubscribe(string eventName, Action<GameEventData> listener)
+    public static void Unsubscribe(Type eventType, Action<GameEventData> listener)
     {
-        if (events.ContainsKey(eventName))
-            events[eventName] -= listener;
+        if (events.ContainsKey(eventType))
+            events[eventType] -= listener;
     }
 
-    public static void TriggerEvent(string eventName, GameEventData data)
+    public static void TriggerEvent(Type eventType, GameEventData data)
     {
-        if (events.ContainsKey(eventName))
-            events[eventName].Invoke(data);
+        if (events.ContainsKey(eventType))
+            events[eventType].Invoke(data);
     }
 }

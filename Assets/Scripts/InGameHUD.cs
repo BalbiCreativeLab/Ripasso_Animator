@@ -16,7 +16,7 @@ public class InGameHUD : MonoBehaviour
 
         GameStateSingleton.Current.OnScoreAdd += AddScore;
 
-        GameEventSystem.Subscribe("OnCollectiblepPickUp", UpdateEventSysText);
+        GameEventSystem.Subscribe(typeof(PickUpEvent), UpdateEventSysText);
     }
 
     void UpdateCollectibleText(int score)
