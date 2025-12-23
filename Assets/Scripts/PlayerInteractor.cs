@@ -3,15 +3,15 @@ using UnityEngine.InputSystem;
 
 public class PlayerInteractor : MonoBehaviour
 {
+    PlayerEventSystem playerEvents;
     public GameObject interactObj;
     public IInteractable interactable;
     public bool hasKey;
-    InputAction interact;
 
     private void Start()
     {
-        interact = InputSystem.actions.FindAction("Interact");
-        interact.performed += Interact;
+        playerEvents = GetComponentInParent<PlayerEventSystem>();
+        playerEvents.OnInteract += Interact;
     }
     private void OnTriggerEnter(Collider other)
     {
@@ -34,7 +34,7 @@ public class PlayerInteractor : MonoBehaviour
         }
     }
 
-    void Interact(InputAction.CallbackContext ctx)
+    void Interact()
     {
         interactable?.Interact(gameObject);
     }

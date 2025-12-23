@@ -12,6 +12,7 @@ public class PlayerControllerRB : MonoBehaviour
     [Tooltip("Requesting Jump")]
     public bool requestJumping = false;
 
+    PlayerEventSystem playerEvents;
     Animator animator;
     Rigidbody rb;
     GroundSensor groundSensor;
@@ -42,18 +43,26 @@ public class PlayerControllerRB : MonoBehaviour
     // Collegamento ai componenti del player in scena e setup variabili
     void Start()
     {
+        playerEvents = GetComponent<PlayerEventSystem>();
         animator = GetComponent<Animator>();
         rb = GetComponent<Rigidbody>();
         groundSensor = GetComponentInChildren<GroundSensor>();
 
         smoothSpeed = new SmoothFloat(0.2f);
         currentState = CharacterState.Idle;
+        playerEvents.OnMove += UpdateDirection;
+        playerEvents.OnJumpRequested += UpdateJumpRequest;
+        playerEvents.OnSprintRequest += UpdateSprintRequest;
+    }
+
+    private void OnDisable()
+    {
+        playerEvents.OnMove -= UpdateDirection;
     }
 
     // Update is called once per frame
     void Update()
     {
-
         // Logica principale della state machine, in base allo stato corrente lancia la funzione legata a quello stato
         switch(currentState)
         {
@@ -96,6 +105,21 @@ public class PlayerControllerRB : MonoBehaviour
             rb.MovePosition(rb.position + tempMove);
             currentVelocity = tempMove / Time.deltaTime;
         }
+    }
+
+    void UpdateDirection(Vector2 newDir)
+    {
+        direction = newDir;
+    }
+
+    void UpdateJumpRequest(bool request)
+    {
+        requestJumping = request;
+    }
+
+    void UpdateSprintRequest(bool request)
+    {
+        requestSprinting = request;
     }
 
     // Qui di seguito sono presenti le varie funzioni legate agli stati

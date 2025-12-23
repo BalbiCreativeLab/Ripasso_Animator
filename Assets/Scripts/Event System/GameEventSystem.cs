@@ -13,7 +13,6 @@ public static class GameEventSystem
 {
     static Dictionary<Type, Action<GameEventData>> events = new Dictionary<Type, Action<GameEventData>>();
 
-
     public static void AddEvent(Type eventType)
     {
         if (events.ContainsKey(eventType))
